@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  INTIMATE_DINNER
+  WEDDING
+  CORPORATE
+  BIRTHDAY
+  OTHER
+}
+
+enum BookingStatus {
+  NEW
+  CONTACTED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model Chef {
+  id                String   @id @default(uuid())
+  slug              String   @unique
+  name              String
+  photoUrl          String
+  cuisineTags       Json
+  tagline           String
+  bio               String   @db.Text
+  experienceYears   Int
+  eventsCompleted   Int
+  ratingAvg         Float    @default(0)
+  reviewCount       Int      @default(0)
+  baseRatePerPerson Float
+  minGuestCount     Int      @default(1)
+  priceMin          Float
+  priceMax          Float
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  menus    Menu[]
+  gallery  ChefGalleryImage[]
+  reviews  Review[]
+  bookings Booking[]
+
+  @@index([active])
+}
+
+model Menu {
+  id             String @id @default(uuid())
+  chefId         String
+  title          String
+  pricePerPerson Float
+  courses        Json
+  chef           Chef   @relation(fields: [chefId], references: [id], onDelete: Cascade)
+
+  @@index([chefId])
+}
+
+model ChefGalleryImage {
+  id      String  @id @default(uuid())
+  chefId  String
+  url     String
+  caption String?
+  chef    Chef    @relation(fields: [chefId], references: [id], onDelete: Cascade)
+
+  @@index([chefId])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  chefId     String
+  guestName  String
+  eventLabel String
+  rating     Int
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  chef       Chef     @relation(fields: [chefId], references: [id], onDelete: Cascade)
+
+  @@index([chefId])
+}
+
+model Booking {
+  id             String        @id @default(uuid())
+  chefId         String
+  menuId         String?
+  name           String
+  email          String
+  phone          String
+  eventType      EventType
+  eventDate      DateTime
+  guestCount     Int
+  venueStatus    String
+  dietary        Json
+  notes          String?       @db.Text
+  estimatedTotal Float?
+  status         BookingStatus @default(NEW)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  chef           Chef          @relation(fields: [chefId], references: [id])
+
+  @@index([status])
+  @@index([chefId])
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+}
