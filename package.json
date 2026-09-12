@@ -1,0 +1,15 @@
+{
+  "name": "gather-graze",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter database run build && pnpm --filter web run build",
+    "db:generate": "pnpm --filter database run generate",
+    "db:migrate": "pnpm --filter database run migrate",
+    "db:seed": "pnpm --filter database run seed",
+    "db:studio": "pnpm --filter database run studio"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
