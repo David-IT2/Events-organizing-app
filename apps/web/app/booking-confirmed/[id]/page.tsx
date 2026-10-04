@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/types";
+import { parseEventServiceNotes } from "@/lib/eventServices";
 
 export default async function BookingConfirmedPage({ params }: { params: { id: string } }) {
   const booking = await prisma.booking.findUnique({
@@ -12,6 +13,8 @@ export default async function BookingConfirmedPage({ params }: { params: { id: s
   if (!booking) return notFound();
 
   const ref = `GG-${new Date(booking.createdAt).getFullYear()}-${booking.id.slice(0, 5).toUpperCase()}`;
+  const { serviceLabel } = parseEventServiceNotes(booking.notes);
+  const isEventPlanningRequest = Boolean(serviceLabel);
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16 text-center">
@@ -23,8 +26,12 @@ export default async function BookingConfirmedPage({ params }: { params: { id: s
 
       <div className="mt-8 border border-white/15 bg-[#1c0216]/80 p-6 text-left rounded-xl backdrop-blur-md shadow-xl text-white">
         <h2 className="font-display text-xl text-white font-semibold">Reservation Summary</h2>
-        <p className="mt-3 font-medium text-white text-lg">{booking.chef.name}</p>
-        <p className="text-sm text-white/70">{EVENT_TYPE_LABELS[booking.eventType]}</p>
+        <p className="mt-3 font-medium text-white text-lg">
+          {serviceLabel || booking.chef.name}
+        </p>
+        <p className="text-sm text-white/70">
+          {serviceLabel ? "Event planning request" : EVENT_TYPE_LABELS[booking.eventType]}
+        </p>
 
         <dl className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm">
           <div className="flex justify-between">
@@ -53,10 +60,13 @@ export default async function BookingConfirmedPage({ params }: { params: { id: s
         <h2 className="font-display text-xl text-white font-semibold">Next Steps</h2>
         <ol className="mt-4 space-y-4 text-sm">
           <li>
-            <span className="font-semibold text-amber">1. Chef Consultation —</span>{" "}
+            <span className="font-semibold text-amber">
+              1. {isEventPlanningRequest ? "Event Consultation" : "Chef Consultation"} —
+            </span>{" "}
             <span className="text-white/80">
-              {booking.chef.name} will contact you within 24 hours to review final dietary
-              restrictions and kitchen needs.
+              {isEventPlanningRequest
+                ? "Our events team will contact you within 24 hours to review catering needs, timing, and service details."
+                : `${booking.chef.name} will contact you within 24 hours to review final dietary restrictions and kitchen needs.`}
             </span>
           </li>
           <li>
