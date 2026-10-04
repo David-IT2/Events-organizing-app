@@ -46,7 +46,7 @@ export default function Header() {
             Explore Chefs
           </Link>
           <Link
-            href="/#event-types"
+            href="/event-types"
             className="rounded-full px-4 py-1.5 text-white/90 transition-all duration-200 hover:bg-[#FFB600] hover:text-[#1c0216]"
           >
             Event Types
@@ -89,22 +89,16 @@ export default function Header() {
           </div>
 
           <Link
-            href="/#how-it-works"
+            href="/about"
             className="rounded-full px-4 py-1.5 text-white/90 transition-all duration-200 hover:bg-[#FFB600] hover:text-[#1c0216]"
           >
-            Services
+            About
           </Link>
         </nav>
 
         <div className="flex items-center gap-3 text-sm font-medium">
           <Link
-            href="/admin/login"
-            className="text-white/80 transition hover:text-white"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/explore-chefs"
+            href="/book"
             className="rounded-full bg-[#FFB600] px-5 py-2 text-[#1c0216] font-semibold transition hover:bg-[#FFB600]/90 shadow-md"
           >
             Plan Your Event
