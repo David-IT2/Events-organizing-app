@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { EVENT_TYPE_LABELS, type Booking, type BookingStatus } from "@/lib/types";
+import { parseEventServiceNotes } from "@/lib/eventServices";
 
 const statuses: BookingStatus[] = ["NEW", "CONTACTED", "CONFIRMED", "COMPLETED", "CANCELLED"];
 
@@ -40,6 +41,9 @@ export default function AdminBookingDetailPage() {
     return <div className="mx-auto max-w-2xl px-6 py-12 text-ink/50">Loading...</div>;
   }
 
+  const { serviceLabel, notes } = parseEventServiceNotes(booking.notes);
+  const isEventPlanningRequest = Boolean(serviceLabel);
+
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
       <button onClick={() => router.back()} className="text-sm text-ink/50 hover:text-rust">
@@ -48,17 +52,25 @@ export default function AdminBookingDetailPage() {
 
       <h1 className="mt-4 font-display text-3xl text-ink">{booking.name}</h1>
       <p className="text-ink/60">
-        {EVENT_TYPE_LABELS[booking.eventType]} with {booking.chef.name}
+        {serviceLabel || `${EVENT_TYPE_LABELS[booking.eventType]} with ${booking.chef.name}`}
       </p>
 
       <dl className="mt-8 space-y-3 border-t border-ink/10 pt-6 text-sm">
+        <Row label="Booking type" value={isEventPlanningRequest ? "Plan Your Event" : "Chef booking"} />
+        {serviceLabel ? (
+          <Row label="Selected event" value={serviceLabel} />
+        ) : (
+          <Row label="Chef" value={booking.chef.name} />
+        )}
+        <Row label="Event category" value={EVENT_TYPE_LABELS[booking.eventType]} />
         <Row label="Email" value={booking.email} />
         <Row label="Phone" value={booking.phone} />
         <Row label="Event date" value={new Date(booking.eventDate).toLocaleDateString()} />
         <Row label="Guest count" value={String(booking.guestCount)} />
         <Row label="Venue status" value={booking.venueStatus} />
         <Row label="Dietary" value={booking.dietary.join(", ") || "—"} />
-        <Row label="Notes" value={booking.notes || "—"} />
+        <Row label="Notes" value={notes || "—"} />
+        <Row label="Status" value={booking.status} />
         <Row label="Estimated total" value={booking.estimatedTotal ? `$${booking.estimatedTotal.toFixed(2)}` : "—"} />
         <Row label="Submitted" value={new Date(booking.createdAt).toLocaleString()} />
       </dl>
