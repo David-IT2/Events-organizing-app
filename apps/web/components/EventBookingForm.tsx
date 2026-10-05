@@ -8,6 +8,12 @@ import {
 } from "@/lib/eventServices";
 
 const DIETARY_OPTIONS = ["None", "Gluten-Free", "Vegetarian", "Nut-Free", "Vegan"];
+const PHONE_PREFIX = "+254";
+const INPUT_CLASS =
+  "w-full border border-white/20 bg-white px-3 py-2 text-base font-normal text-slate-900 placeholder:text-slate-400 focus:border-amber focus:outline-none focus:ring-2 focus:ring-amber/40";
+const CONTACT_INPUT_CLASS =
+  "h-12 w-full rounded-md border border-transparent bg-slate-100 px-4 text-sm font-normal text-slate-900 placeholder:text-slate-400 focus:border-amber focus:outline-none focus:ring-2 focus:ring-amber/30";
+const CONTACT_LABEL_CLASS = "mb-2 block text-sm font-medium text-white/85";
 
 export default function EventBookingForm({ defaultChefId }: { defaultChefId: string }) {
   const router = useRouter();
@@ -21,9 +27,10 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
   const [dietary, setDietary] = useState<string[]>(["None"]);
   const [notes, setNotes] = useState("");
 
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const selectedService =
     EVENT_SERVICE_OPTIONS.find((service) => service.label === serviceLabel) ||
@@ -37,6 +44,18 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
     });
   }
 
+  function getFullName() {
+    return `${firstName.trim()} ${lastName.trim()}`.trim();
+  }
+
+  function getPhoneValue() {
+    const trimmed = phoneNumber.trim();
+    if (trimmed.startsWith("+")) return trimmed;
+
+    const localNumber = trimmed.replace(/^\+?254/, "").replace(/^0+/, "");
+    return `${PHONE_PREFIX}${localNumber}`;
+  }
+
   async function handleSubmit() {
     setSubmitting(true);
     setError("");
@@ -47,9 +66,9 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chefId: defaultChefId,
-          name,
+          name: getFullName(),
           email,
-          phone,
+          phone: getPhoneValue(),
           eventType: selectedService.eventType,
           eventDate,
           guestCount,
@@ -91,7 +110,7 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
             <select
               value={serviceLabel}
               onChange={(e) => setServiceLabel(e.target.value)}
-              className="w-full border border-white/20 bg-white px-3 py-2 text-slate-900 font-medium"
+              className={INPUT_CLASS}
             >
               {EVENT_SERVICE_OPTIONS.map((service) => (
                 <option key={service.label} value={service.label}>
@@ -107,7 +126,7 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
               type="date"
               value={eventDate}
               onChange={(e) => setEventDate(e.target.value)}
-              className="w-full border border-white/20 bg-white px-3 py-2 text-slate-900 font-medium"
+              className={INPUT_CLASS}
             />
           </div>
 
@@ -118,7 +137,7 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
               min={1}
               value={guestCount}
               onChange={(e) => setGuestCount(Number(e.target.value))}
-              className="w-full border border-white/20 bg-white px-3 py-2 text-slate-900 font-medium"
+              className={INPUT_CLASS}
             />
           </div>
 
@@ -128,7 +147,7 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
               value={venueStatus}
               onChange={(e) => setVenueStatus(e.target.value)}
               placeholder="Tell us where the event will be hosted"
-              className="w-full border border-white/20 bg-white px-3 py-2 text-slate-900 font-medium"
+              className={INPUT_CLASS}
             />
           </div>
         </div>
@@ -159,21 +178,65 @@ export default function EventBookingForm({ defaultChefId }: { defaultChefId: str
             rows={4}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full border border-white/20 bg-white px-3 py-2 text-slate-900 font-medium"
+            className={INPUT_CLASS}
           />
         </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
-          <Field label="Full name" value={name} onChange={setName} />
-          <Field label="Email" value={email} onChange={setEmail} type="email" />
-          <Field label="Phone" value={phone} onChange={setPhone} />
+          <Field
+            label="First Name (required)"
+            value={firstName}
+            onChange={setFirstName}
+            placeholder="Enter your first name"
+          />
+          <Field
+            label="Last Name (required)"
+            value={lastName}
+            onChange={setLastName}
+            placeholder="Enter your last name"
+          />
+          <Field
+            label="Email (required)"
+            value={email}
+            onChange={setEmail}
+            type="email"
+            placeholder="Enter your email address"
+          />
+          <div>
+            <label className={CONTACT_LABEL_CLASS}>Phone Number (required)</label>
+            <div className="flex h-12 overflow-hidden rounded-md bg-slate-100">
+              <select
+                aria-label="Country code"
+                value={PHONE_PREFIX}
+                onChange={() => undefined}
+                className="w-36 border-r border-slate-200 bg-slate-100 px-3 text-sm font-normal text-slate-900 focus:outline-none"
+              >
+                <option value={PHONE_PREFIX}>🇰🇪 KE (+254)</option>
+              </select>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Enter phone number"
+                className="min-w-0 flex-1 bg-slate-100 px-4 text-sm font-normal text-slate-900 placeholder:text-slate-400 focus:outline-none"
+              />
+            </div>
+          </div>
         </div>
 
         {error && <p className="mt-4 text-sm text-rust">{error}</p>}
 
         <button
           onClick={handleSubmit}
-          disabled={submitting || !name || !email || !phone || !eventDate || !venueStatus}
+          disabled={
+            submitting ||
+            !firstName ||
+            !lastName ||
+            !email ||
+            !phoneNumber ||
+            !eventDate ||
+            !venueStatus
+          }
           className="mt-8 bg-rust px-6 py-3 text-sm font-semibold text-paper transition hover:bg-rust/90 disabled:opacity-50"
         >
           {submitting ? "Submitting..." : "Submit Booking Request"}
@@ -206,20 +269,23 @@ function Field({
   value,
   onChange,
   type = "text",
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  placeholder?: string;
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm text-white/80">{label}</label>
+      <label className={CONTACT_LABEL_CLASS}>{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-white/20 bg-white px-3 py-2 text-slate-900 font-medium"
+        placeholder={placeholder}
+        className={CONTACT_INPUT_CLASS}
       />
     </div>
   );
