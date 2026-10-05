@@ -23,7 +23,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       .object({ status: z.enum(["NEW", "CONTACTED", "CONFIRMED", "COMPLETED", "CANCELLED"]) })
       .parse(await req.json());
 
-    const booking = await prisma.booking.update({ where: { id: params.id }, data: { status } });
+    const booking = await prisma.booking.update({
+      where: { id: params.id },
+      data: { status },
+      include: { chef: { select: { name: true, photoUrl: true, slug: true } } },
+    });
     return NextResponse.json(booking);
   } catch {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
