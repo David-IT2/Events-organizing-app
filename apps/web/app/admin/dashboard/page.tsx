@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { EVENT_TYPE_LABELS, type Booking } from "@/lib/types";
+import { parseEventServiceNotes } from "@/lib/eventServices";
 
 const statusColors: Record<string, string> = {
   NEW: "bg-amber/20 text-amber border border-amber/40",
@@ -56,28 +57,38 @@ export default function AdminDashboardPage() {
             <thead className="border-b border-white/15 bg-white/5 text-left text-white font-semibold">
               <tr>
                 <th className="px-4 py-3 text-white">Guest</th>
-                <th className="px-4 py-3 text-white">Chef</th>
-                <th className="px-4 py-3 text-white">Event</th>
+                <th className="px-4 py-3 text-white">Contact</th>
+                <th className="px-4 py-3 text-white">Booking</th>
                 <th className="px-4 py-3 text-white">Date</th>
+                <th className="px-4 py-3 text-white">Guests</th>
                 <th className="px-4 py-3 text-white">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10 text-white">
-              {bookings.map((b) => (
-                <tr key={b.id} className="transition hover:bg-white/5">
-                  <td className="px-4 py-3">
-                    <Link href={`/admin/bookings/${b.id}`} className="font-medium text-amber hover:underline">
-                      {b.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-white">{b.chef.name}</td>
-                  <td className="px-4 py-3 text-white/90">{EVENT_TYPE_LABELS[b.eventType]}</td>
-                  <td className="px-4 py-3 text-white/80">{new Date(b.eventDate).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded ${statusColors[b.status]}`}>{b.status}</span>
-                  </td>
-                </tr>
-              ))}
+              {bookings.map((b) => {
+                const { serviceLabel } = parseEventServiceNotes(b.notes);
+                const bookingLabel = serviceLabel || `${EVENT_TYPE_LABELS[b.eventType]} with ${b.chef.name}`;
+
+                return (
+                  <tr key={b.id} className="transition hover:bg-white/5">
+                    <td className="px-4 py-3">
+                      <Link href={`/admin/bookings/${b.id}`} className="font-medium text-amber hover:underline">
+                        {b.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-white/80">
+                      <div>{b.email}</div>
+                      <div className="text-xs text-white/55">{b.phone}</div>
+                    </td>
+                    <td className="px-4 py-3 text-white/90">{bookingLabel}</td>
+                    <td className="px-4 py-3 text-white/80">{new Date(b.eventDate).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-white/80">{b.guestCount}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded ${statusColors[b.status]}`}>{b.status}</span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
